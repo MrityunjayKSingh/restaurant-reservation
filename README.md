@@ -56,7 +56,7 @@ The API will be available at `http://localhost:8000/api/v1`.
 
 ## API Reference
 
-Detailed implementation notes are available in [docs/API_CODE_EXPLANATION.md](https://github.com/MrityunjayKSingh/restaurant-reservation/blob/main/docs/API_CODE_EXPLANATION.md:1).
+Detailed implementation notes are available in [docs/API_CODE_EXPLANATION.md](https://github.com/MrityunjayKSingh/restaurant-reservation/blob/main/docs/API_CODE_EXPLANATION.md).
 
 ### Base URL
 ```
