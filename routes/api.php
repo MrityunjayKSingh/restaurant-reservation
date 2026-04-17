@@ -37,4 +37,7 @@ Route::prefix('v1')->group(function () {
 
     Route::delete('reservations/{referenceCode}', [ReservationController::class, 'cancel'])
          ->name('reservations.cancel');
+
+    Route::post('reservations/{referenceCode}/copy', [ReservationController::class, 'copy'])
+         ->name('reservations.copy');
 });

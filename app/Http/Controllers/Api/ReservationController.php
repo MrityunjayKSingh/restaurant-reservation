@@ -6,6 +6,7 @@ use App\Exceptions\ReservationException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\BookTableRequest;
 use App\Http\Requests\CancelReservationRequest;
+use App\Http\Requests\CopyReservationRequest;
 use App\Http\Resources\ReservationResource;
 use App\Models\Reservation;
 use App\Services\ReservationService;
@@ -71,5 +72,31 @@ class ReservationController extends Controller
         }
 
         return (new ReservationResource($reservation))->response();
+    }
+
+    /**
+     * POST /api/reservations/{referenceCode}/copy
+     *
+     * Copy a reservation to another similar table on the same date and slot.
+     * The original reservation will be cancelled after copying.
+     */
+    public function copy(CopyReservationRequest $request, string $referenceCode): JsonResponse
+    {
+        $reservation = Reservation::with('table')
+            ->where('reference_code', strtoupper($referenceCode))
+            ->firstOrFail();
+
+        try {
+            $newReservation = $this->reservationService->copy(
+                $reservation,
+                $request->input('table_id')
+            );
+        } catch (ReservationException $e) {
+            return response()->json(['message' => $e->getMessage()], $e->getStatusCode());
+        }
+
+        return (new ReservationResource($newReservation))
+            ->response()
+            ->setStatusCode(Response::HTTP_CREATED);
     }
 }

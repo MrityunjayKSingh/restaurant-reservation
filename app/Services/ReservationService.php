@@ -100,6 +100,51 @@ class ReservationService
         return $reservation->fresh('table');
     }
 
+    // ─── Copy Reservation ─────────────────────────────────────────────────────
+
+    /**
+     * Copy a reservation to another similar table on the same date and slot.
+     * After successful copy, the original reservation is cancelled.
+     */
+    public function copy(Reservation $reservation, int $newTableId): Reservation
+    {
+        return DB::transaction(function () use ($reservation, $newTableId) {
+            $newTable = Table::active()->findOrFail($newTableId);
+
+            // Ensure the new table has the same capacity as the original
+            if ($newTable->capacity !== $reservation->table->capacity) {
+                throw ReservationException::tableCapacityExceeded(
+                    $newTable->capacity,
+                    $reservation->guest_count
+                );
+            }
+
+            // Ensure the new table is available on the same date/slot
+            if (! $newTable->isAvailableForSlot($reservation->reservation_date, $reservation->slot_start)) {
+                throw ReservationException::tableAlreadyBooked();
+            }
+
+            // Create new reservation with same details
+            $newReservation = Reservation::create([
+                'table_id'         => $newTable->id,
+                'customer_name'    => $reservation->customer_name,
+                'customer_email'   => $reservation->customer_email,
+                'customer_phone'   => $reservation->customer_phone,
+                'guest_count'      => $reservation->guest_count,
+                'special_requests' => $reservation->special_requests,
+                'reservation_date' => $reservation->reservation_date,
+                'slot_start'       => $reservation->slot_start,
+                'slot_end'         => $reservation->slot_end,
+                'status'           => 'confirmed',
+            ]);
+
+            // Cancel the original reservation
+            $reservation->cancel('Moved to another table');
+
+            return $newReservation->load('table');
+        });
+    }
+
     // ─── Private helpers ──────────────────────────────────────────────────────
 
     private function resolveExplicitTable(
