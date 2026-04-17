@@ -19,7 +19,10 @@ Route::prefix('v1')->group(function () {
 
     // ── Tables (staff-facing) ─────────────────────────────────────────────
     Route::apiResource('tables', TableController::class)
-         ->only(['index', 'show', 'store']);
+         ->only(['index', 'show', 'store', 'update', 'destroy']);
+
+    Route::patch('tables/{table}/inactivate', [TableController::class, 'inactivate'])
+         ->name('tables.inactivate');
 
     // ── Availability (public) ─────────────────────────────────────────────
     Route::get('availability', [AvailabilityController::class, 'index'])

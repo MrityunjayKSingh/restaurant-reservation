@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CreateTableRequest;
+use App\Http\Requests\UpdateTableRequest;
 use App\Http\Resources\TableResource;
 use App\Models\Table;
 use Illuminate\Http\JsonResponse;
@@ -46,6 +47,45 @@ class TableController extends Controller
      */
     public function show(Table $table): TableResource
     {
+        return new TableResource($table);
+    }
+
+    /**
+     * PUT /api/tables/{table}
+     *
+     * Update a table's details.
+     */
+    public function update(UpdateTableRequest $request, Table $table): TableResource
+    {
+        $table->update($request->validated());
+
+        return new TableResource($table);
+    }
+
+    /**
+     * DELETE /api/tables/{table}
+     *
+     * Permanently delete a table (soft delete).
+     */
+    public function destroy(Table $table): JsonResponse
+    {
+        $table->delete();
+
+        return response()->json(
+            ['message' => 'Table deleted successfully'],
+            Response::HTTP_NO_CONTENT
+        );
+    }
+
+    /**
+     * PATCH /api/tables/{table}/inactivate
+     *
+     * Inactivate a table without deleting it.
+     */
+    public function inactivate(Table $table): TableResource
+    {
+        $table->update(['is_active' => false]);
+
         return new TableResource($table);
     }
 }
